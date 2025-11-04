@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cold Email Automation AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 3px solid #FF1493;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            color: #FF1493;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 20, 147, 0.5);
+        }
+        
+        .header p {
+            color: #ffffff;
+            font-size: 1.2em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: #000000;
+            border: 2px solid #FF1493;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);
+        }
+        
+        .card h2 {
+            color: #FF69B4;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #FF69B4;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 2px solid #FF1493;
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FF69B4;
+            box-shadow: 0 0 10px rgba(255, 20, 147, 0.5);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #FF1493 0%, #FF69B4 100%);
+            color: #000000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 20, 147, 0.5);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 40px;
+        }
+        
+        .results h2 {
+            color: #FF69B4;
+            margin-bottom: 20px;
+        }
+        
+        .results-content {
+            background: #000000;
+            border: 2px solid #FF1493;
+            border-radius: 15px;
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .stat {
+            display: inline-block;
+            background: #1a1a1a;
+            border: 2px solid #FF1493;
+            border-radius: 10px;
+            padding: 15px 25px;
+            margin: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            color: #FF1493;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            color: #ffffff;
+            font-size: 0.9em;
+        }
+        
+        .channel-item,
+        .lead-item {
+            background: #1a1a1a;
+            border: 1px solid #FF1493;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .channel-item h3,
+        .lead-item h3 {
+            color: #FF69B4;
+            margin-bottom: 10px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            margin: 5px 5px 5px 0;
+        }
+        
+        .badge-success {
+            background: #FF1493;
+            color: #000000;
+        }
+        
+        .badge-info {
+            background: #FF69B4;
+            color: #000000;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #FF69B4;
+        }
+        
+        .spinner {
+            border: 4px solid #1a1a1a;
+            border-top: 4px solid #FF1493;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: rgba(255, 20, 147, 0.2);
+            border: 2px solid #FF1493;
+            color: #FF69B4;
+        }
+        
+        .alert-error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            color: #ff6666;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Cold Email Automation AI</h1>
+            <p>Automate lead generation and email outreach for video editing services</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2>🔍 Channel Collection</h2>
+                <form id="collectionForm">
+                    <div class="form-group">
+                        <label for="query">Search Query</label>
+                        <input type="text" id="query" name="query" placeholder="e.g., tech reviews, gaming, vlogs" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Platforms</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="platforms" value="youtube" checked> YouTube</label>
+                            <label><input type="checkbox" name="platforms" value="instagram" checked> Instagram</label>
+                            <label><input type="checkbox" name="platforms" value="tiktok" checked> TikTok</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Collect Channels</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>🚀 Full Automation</h2>
+                <form id="automationForm">
+                    <div class="form-group">
+                        <label for="autoQuery">Search Query</label>
+                        <input type="text" id="autoQuery" name="query" placeholder="e.g., tech reviews, gaming, vlogs" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Platforms</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="platforms" value="youtube" checked> YouTube</label>
+                            <label><input type="checkbox" name="platforms" value="instagram" checked> Instagram</label>
+                            <label><input type="checkbox" name="platforms" value="tiktok" checked> TikTok</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Run Full Automation</button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="alertContainer"></div>
+        
+        <div class="results" id="resultsSection" style="display: none;">
+            <h2>📊 Results</h2>
+            <div class="results-content" id="resultsContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api';
+        
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+        
+        function showLoading() {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+            resultsSection.style.display = 'block';
+            resultsContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>Processing...</p></div>';
+        }
+        
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+            resultsSection.style.display = 'block';
+            
+            let html = '<div class="stats">';
+            
+            if (data.channels_collected !== undefined) {
+                html += `
+                    <div class="stat">
+                        <div class="stat-value">${data.channels_collected || 0}</div>
+                        <div class="stat-label">Channels Collected</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${data.leads_collected || 0}</div>
+                        <div class="stat-label">Leads Collected</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${data.emails_sent || 0}</div>
+                        <div class="stat-label">Emails Sent</div>
+                    </div>
+                `;
+            } else if (data.channels) {
+                html += `
+                    <div class="stat">
+                        <div class="stat-value">${data.count || 0}</div>
+                        <div class="stat-label">Channels Found</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            
+            if (data.channels) {
+                html += '<h3 style="color: #FF69B4; margin-top: 30px;">Channels</h3>';
+                data.channels.forEach(channel => {
+                    html += `
+                        <div class="channel-item">
+                            <h3>${channel.username || 'Unknown'}</h3>
+                            <span class="badge badge-info">${channel.platform || 'unknown'}</span>
+                            <span class="badge badge-success">${(channel.subscriber_count || 0).toLocaleString()} followers</span>
+                            <p>${channel.description || 'No description'}</p>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (data.leads) {
+                html += '<h3 style="color: #FF69B4; margin-top: 30px;">Leads</h3>';
+                data.leads.forEach(lead => {
+                    html += `
+                        <div class="lead-item">
+                            <h3>${lead.username || 'Unknown'}</h3>
+                            <p><strong>Email:</strong> ${lead.email || 'Not found'}</p>
+                            <p><strong>Platform:</strong> ${lead.platform || 'unknown'}</p>
+                        </div>
+                    `;
+                });
+            }
+            
+            resultsContent.innerHTML = html;
+        }
+        
+        document.getElementById('collectionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            
+            const formData = new FormData(e.target);
+            const query = formData.get('query');
+            const platforms = formData.getAll('platforms');
+            
+            try {
+                const response = await fetch(`${API_BASE}/collect-channels`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query, platforms })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                    showAlert(`Successfully collected ${data.count} channels!`, 'success');
+                } else {
+                    showAlert(data.error || 'Error collecting channels', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('automationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            
+            const formData = new FormData(e.target);
+            const query = formData.get('query');
+            const platforms = formData.getAll('platforms');
+            
+            try {
+                const response = await fetch(`${API_BASE}/full-automation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query, platforms })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                    showAlert(`Automation complete! Sent ${data.emails_sent} emails.`, 'success');
+                } else {
+                    showAlert(data.error || 'Error running automation', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

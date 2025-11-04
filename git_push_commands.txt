@@ -1,0 +1,23 @@
+# Git Push Commands - Copy and paste these commands
+
+# 1. Initialize Git (if not already done)
+git init
+
+# 2. Add all files
+git add .
+
+# 3. Create initial commit
+git commit -m "Initial commit: Cold Email Automation AI - Full working system with YT/IG/TikTok channel collection, AI analysis, lead collection, and email automation"
+
+# 4. Add remote repository (replace YOUR_USERNAME and REPO_NAME)
+git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
+
+# 5. Push to GitHub
+git branch -M main
+git push -u origin main
+
+# For future updates:
+# git add .
+# git commit -m "Update: description of changes"
+# git push
+
