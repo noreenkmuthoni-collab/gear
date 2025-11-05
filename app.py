@@ -190,6 +190,104 @@ def full_automation():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/process-channels', methods=['POST'])
+def process_channels_bulk():
+    """Process bulk-pasted channel names with selected platforms.
+    For each name+platform, find last post and best contact, then return leads with a ready message template.
+    """
+    try:
+        data = request.json or {}
+        channels_text = data.get('channels_text', '')
+        platforms = data.get('platforms', ['youtube', 'instagram', 'tiktok'])
+
+        if not channels_text:
+            return jsonify({'error': 'channels_text is required'}), 400
+
+        # Parse names: split by newlines/commas
+        raw_names = [x.strip() for x in channels_text.replace(',', '\n').split('\n')]
+        names = [n for n in raw_names if n]
+
+        processed = []
+        leads = []
+
+        for name in names:
+            for platform in platforms:
+                channel_obj = build_channel_stub(name, platform)
+                # Last post (best effort)
+                last_post = post_analyzer.get_last_post(channel_obj) or {}
+                # Lead collection
+                lead = lead_collector.collect_lead_from_channel(channel_obj)
+                enriched = lead_collector.enrich_lead(lead)
+
+                # Contact link: email mailto if we have email, else channel URL
+                contact_link = f"mailto:{enriched['email']}" if enriched.get('email') else channel_obj.get('url', '')
+
+                # Ready message template
+                template = generate_message_template(channel_obj, last_post)
+
+                item = {
+                    'channel': channel_obj,
+                    'last_post': last_post,
+                    'lead': {
+                        **enriched,
+                        'contact_link': contact_link,
+                        'message_template': template,
+                    }
+                }
+                processed.append(item)
+                leads.append({
+                    'username': channel_obj.get('username'),
+                    'platform': platform,
+                    'email': enriched.get('email'),
+                    'contact_link': contact_link,
+                    'message_template': template,
+                })
+
+        return jsonify({
+            'success': True,
+            'count': len(processed),
+            'processed': processed,
+            'leads': leads
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def build_channel_stub(username: str, platform: str) -> dict:
+    """Create a minimal channel object from a username and platform."""
+    username_clean = username.lstrip('@')
+    url = ''
+    channel_id = ''
+    if platform == 'youtube':
+        # Without channel ID we can at least link to the handle page
+        url = f"https://www.youtube.com/@{username_clean}"
+    elif platform == 'instagram':
+        url = f"https://www.instagram.com/{username_clean}/"
+    elif platform == 'tiktok':
+        url = f"https://www.tiktok.com/@{username_clean}"
+    return {
+        'platform': platform,
+        'channel_id': channel_id,
+        'username': username_clean,
+        'description': '',
+        'subscriber_count': 0,
+        'video_count': 0,
+        'url': url,
+        'thumbnail': ''
+    }
+
+def generate_message_template(channel: dict, last_post: dict) -> str:
+    """Generate a short outreach message template tailored to the channel."""
+    handle = channel.get('username', '')
+    platform = channel.get('platform', '')
+    last_title = last_post.get('title', '') if last_post else ''
+    return (
+        f"Hi @{handle},\n\n"
+        f"Loved your {platform} content"
+        + (f" — especially '{last_title}'." if last_title else ".")
+        + " I'm a video editor helping creators speed up production while keeping quality high.\n\n"
+        "If you're open to it, I can share a quick sample edit tailored to your style."
+        "\n\nCheers,\nYour Name"
+    )
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))

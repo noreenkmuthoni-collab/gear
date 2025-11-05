@@ -13,7 +13,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+            background: #0b0b0b; /* solid dark */
             color: #ffffff;
             min-height: 100vh;
             padding: 20px;
@@ -27,15 +27,14 @@
         .header {
             text-align: center;
             padding: 40px 20px;
-            border-bottom: 3px solid #FF1493;
+            border-bottom: 3px solid #C2185B; /* dark pink */
             margin-bottom: 40px;
         }
         
         .header h1 {
             font-size: 3em;
-            color: #FF1493;
+            color: #C2185B; /* dark pink */
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255, 20, 147, 0.5);
         }
         
         .header p {
@@ -51,15 +50,14 @@
         }
         
         .card {
-            background: #000000;
-            border: 2px solid #FF1493;
-            border-radius: 15px;
+            background: #111;
+            border: 2px solid #C2185B;
+            border-radius: 12px;
             padding: 30px;
-            box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);
         }
         
         .card h2 {
-            color: #FF69B4;
+            color: #E91E63; /* slightly brighter dark pink */
             margin-bottom: 20px;
             font-size: 1.8em;
         }
@@ -76,21 +74,22 @@
         }
         
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px;
             background: #1a1a1a;
-            border: 2px solid #FF1493;
+            border: 2px solid #C2185B;
             border-radius: 5px;
             color: #ffffff;
             font-size: 1em;
         }
         
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
-            border-color: #FF69B4;
-            box-shadow: 0 0 10px rgba(255, 20, 147, 0.5);
+            border-color: #E91E63;
         }
         
         .checkbox-group {
@@ -112,8 +111,8 @@
         }
         
         .btn {
-            background: linear-gradient(135deg, #FF1493 0%, #FF69B4 100%);
-            color: #000000;
+            background: #C2185B; /* solid dark pink */
+            color: #fff;
             border: none;
             padding: 15px 30px;
             font-size: 1.1em;
@@ -126,8 +125,7 @@
         }
         
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 20, 147, 0.5);
+            background: #AD1457;
         }
         
         .btn:disabled {
@@ -140,14 +138,14 @@
         }
         
         .results h2 {
-            color: #FF69B4;
+            color: #E91E63;
             margin-bottom: 20px;
         }
         
         .results-content {
             background: #000000;
-            border: 2px solid #FF1493;
-            border-radius: 15px;
+            border: 2px solid #C2185B;
+            border-radius: 12px;
             padding: 30px;
             max-height: 600px;
             overflow-y: auto;
@@ -156,7 +154,7 @@
         .stat {
             display: inline-block;
             background: #1a1a1a;
-            border: 2px solid #FF1493;
+            border: 2px solid #C2185B;
             border-radius: 10px;
             padding: 15px 25px;
             margin: 10px;
@@ -165,7 +163,7 @@
         
         .stat-value {
             font-size: 2em;
-            color: #FF1493;
+            color: #C2185B;
             font-weight: bold;
         }
         
@@ -177,7 +175,7 @@
         .channel-item,
         .lead-item {
             background: #1a1a1a;
-            border: 1px solid #FF1493;
+            border: 1px solid #C2185B;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
@@ -185,7 +183,7 @@
         
         .channel-item h3,
         .lead-item h3 {
-            color: #FF69B4;
+            color: #E91E63;
             margin-bottom: 10px;
         }
         
@@ -198,24 +196,24 @@
         }
         
         .badge-success {
-            background: #FF1493;
-            color: #000000;
+            background: #C2185B;
+            color: #ffffff;
         }
         
         .badge-info {
-            background: #FF69B4;
-            color: #000000;
+            background: #E91E63;
+            color: #ffffff;
         }
         
         .loading {
             text-align: center;
             padding: 20px;
-            color: #FF69B4;
+            color: #E91E63;
         }
         
         .spinner {
             border: 4px solid #1a1a1a;
-            border-top: 4px solid #FF1493;
+            border-top: 4px solid #C2185B;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -235,9 +233,9 @@
         }
         
         .alert-success {
-            background: rgba(255, 20, 147, 0.2);
-            border: 2px solid #FF1493;
-            color: #FF69B4;
+            background: rgba(194, 24, 91, 0.15);
+            border: 2px solid #C2185B;
+            color: #E91E63;
         }
         
         .alert-error {
@@ -286,6 +284,25 @@
                 </form>
             </div>
             
+            <div class="card">
+                <h2>📋 Bulk Channels</h2>
+                <form id="bulkForm">
+                    <div class="form-group">
+                        <label for="bulkInput">Paste channel names (one per line or comma-separated)</label>
+                        <textarea id="bulkInput" rows="6" placeholder="e.g. @mrbeast\nfilmriot\nsome_ig_user"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Platforms</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="platforms" value="youtube" checked> YouTube</label>
+                            <label><input type="checkbox" name="platforms" value="instagram" checked> Instagram</label>
+                            <label><input type="checkbox" name="platforms" value="tiktok" checked> TikTok</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Process Channels</button>
+                </form>
+            </div>
+
             <div class="card">
                 <h2>🚀 Full Automation</h2>
                 <form id="automationForm">
@@ -391,13 +408,16 @@
             }
             
             if (data.leads) {
-                html += '<h3 style="color: #FF69B4; margin-top: 30px;">Leads</h3>';
+                html += '<h3 style="color: #E91E63; margin-top: 30px;">Leads</h3>';
                 data.leads.forEach(lead => {
+                    const contactLink = lead.contact_link ? `<a href="${lead.contact_link}" target="_blank">Contact</a>` : 'N/A';
+                    const msg = lead.message_template ? lead.message_template.replace(/\n/g, '<br>') : '';
                     html += `
                         <div class="lead-item">
                             <h3>${lead.username || 'Unknown'}</h3>
                             <p><strong>Email:</strong> ${lead.email || 'Not found'}</p>
-                            <p><strong>Platform:</strong> ${lead.platform || 'unknown'}</p>
+                            <p><strong>Platform:</strong> ${lead.platform || 'unknown'} | ${contactLink}</p>
+                            ${msg ? `<div style="margin-top:10px;"><strong>Template:</strong><div style="margin-top:6px; background:#0b0b0b; border:1px solid #333; padding:10px; border-radius:6px;">${msg}</div></div>` : ''}
                         </div>
                     `;
                 });
@@ -463,6 +483,29 @@
                 }
             } catch (error) {
                 showAlert('Error: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('bulkForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            const text = document.getElementById('bulkInput').value || '';
+            const platforms = Array.from(document.querySelectorAll('#bulkForm input[name="platforms"]:checked')).map(x => x.value);
+            try {
+                const response = await fetch(`${API_BASE}/process-channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ channels_text: text, platforms })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    displayResults(data);
+                    showAlert(`Processed ${data.count} entries`, 'success');
+                } else {
+                    showAlert(data.error || 'Error processing channels', 'error');
+                }
+            } catch (err) {
+                showAlert('Error: ' + err.message, 'error');
             }
         });
     </script>
