@@ -170,6 +170,21 @@
             max-height: 600px;
             overflow-y: auto;
         }
+
+        .progress {
+            background: #0b0b0b;
+            border: 1px solid #333;
+            border-radius: 6px;
+            height: 12px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            background: #C2185B;
+            height: 100%;
+            width: 0%;
+            transition: width 0.2s ease;
+        }
         
         .stat {
             display: inline-block;
@@ -305,6 +320,13 @@
                             </div>
                         </div>
                         <button type="submit" class="btn">Process Channels</button>
+                        <div id="bulkProgressWrap" style="margin-top:10px; display:none;">
+                            <div style="display:flex; justify-content:space-between; color:#bbb;">
+                                <span>Analysing contacts...</span>
+                                <span id="bulkPercent">0%</span>
+                            </div>
+                            <div class="progress"><div id="bulkProgress" class="progress-bar"></div></div>
+                        </div>
                     </form>
                 </div>
                 <div id="alertContainer"></div>
@@ -427,24 +449,37 @@
             showLoading();
             const text = document.getElementById('bulkInput').value || '';
             const platforms = Array.from(document.querySelectorAll('#bulkForm input[name="platforms"]:checked')).map(x => x.value);
-            try {
-                const response = await fetch(`${API_BASE}/process-channels`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ channels_text: text, platforms })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    displayResults(data);
-                    showAlert(`Processed ${data.count} entries`, 'success');
-                    // switch to leads tab automatically
-                    document.querySelector('.tab-btn[data-tab="leads"]').click();
-                } else {
-                    showAlert(data.error || 'Error processing channels', 'error');
-                }
-            } catch (err) {
-                showAlert('Error: ' + err.message, 'error');
+            const names = text.replace(/,/g, '\n').split('\n').map(x => x.trim()).filter(Boolean);
+            const wrap = document.getElementById('bulkProgressWrap');
+            const bar = document.getElementById('bulkProgress');
+            const pct = document.getElementById('bulkPercent');
+            wrap.style.display = names.length ? 'block' : 'none';
+            const total = names.length;
+            let done = 0;
+            const aggregated = { success: true, count: 0, leads: [] };
+            for (const name of names) {
+                try {
+                    const res = await fetch(`${API_BASE}/process-channel`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, platforms })
+                    });
+                    const data = await res.json();
+                    if (data && data.success) {
+                        aggregated.count += data.count || 0;
+                        if (Array.isArray(data.leads)) {
+                            data.leads.forEach(l => leadsStore.push({ ...l }));
+                        }
+                    }
+                } catch (_) {}
+                done += 1;
+                const percent = Math.round((done / total) * 100);
+                bar.style.width = percent + '%';
+                pct.textContent = percent + '%';
             }
+            displayResults(aggregated);
+            showAlert(`Processed ${aggregated.count} entries`, 'success');
+            document.querySelector('.tab-btn[data-tab="leads"]').click();
         });
 
         function renderLeads() {

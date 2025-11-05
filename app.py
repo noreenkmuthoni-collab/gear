@@ -8,7 +8,7 @@ from channel_collector import ChannelCollector
 from post_analyzer import PostAnalyzer
 from lead_collector import LeadCollector
 from email_sender import EmailSender
-from config import THEME_COLORS
+from config import THEME_COLORS, SENDER_EMAIL
 
 app = Flask(__name__)
 CORS(app)
@@ -219,11 +219,20 @@ def process_channels_bulk():
                 lead = lead_collector.collect_lead_from_channel(channel_obj)
                 enriched = lead_collector.enrich_lead(lead)
 
-                # Contact link: email mailto if we have email, else channel URL
-                contact_link = f"mailto:{enriched['email']}" if enriched.get('email') else channel_obj.get('url', '')
-
                 # Ready message template
                 template = generate_message_template(channel_obj, last_post)
+
+                # Contact link preference: Gmail compose if email, else discord/contact link, else channel URL
+                gmail_link = build_gmail_compose_link(
+                    to=enriched.get('email'),
+                    subject=f"Quick edit proposal for @{channel_obj.get('username','')}",
+                    body=template
+                ) if enriched.get('email') else ''
+                contact_link = (
+                    gmail_link
+                    or _pick_best_contact_link(lead.get('contact_info', {}).get('links', []))
+                    or channel_obj.get('url', '')
+                )
 
                 item = {
                     'channel': channel_obj,
@@ -249,6 +258,50 @@ def process_channels_bulk():
             'processed': processed,
             'leads': leads
         })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/process-channel', methods=['POST'])
+def process_channel_single():
+    """Process a single channel name across selected platforms for progressive UI updates."""
+    try:
+        data = request.json or {}
+        name = (data.get('name') or '').strip()
+        platforms = data.get('platforms', ['youtube', 'instagram', 'tiktok'])
+        if not name:
+            return jsonify({'error': 'name is required'}), 400
+
+        processed = []
+        leads = []
+        for platform in platforms:
+            channel_obj = build_channel_stub(name, platform)
+            last_post = post_analyzer.get_last_post(channel_obj) or {}
+            lead = lead_collector.collect_lead_from_channel(channel_obj)
+            enriched = lead_collector.enrich_lead(lead)
+            template = generate_message_template(channel_obj, last_post)
+            gmail_link = build_gmail_compose_link(
+                to=enriched.get('email'),
+                subject=f"Quick edit proposal for @{channel_obj.get('username','')}",
+                body=template
+            ) if enriched.get('email') else ''
+            contact_link = (
+                gmail_link
+                or _pick_best_contact_link(lead.get('contact_info', {}).get('links', []))
+                or channel_obj.get('url', '')
+            )
+            processed.append({
+                'channel': channel_obj,
+                'last_post': last_post,
+                'lead': {**enriched, 'contact_link': contact_link, 'message_template': template}
+            })
+            leads.append({
+                'username': channel_obj.get('username'),
+                'platform': platform,
+                'email': enriched.get('email'),
+                'contact_link': contact_link,
+                'message_template': template,
+            })
+        return jsonify({'success': True, 'count': len(processed), 'processed': processed, 'leads': leads})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -288,6 +341,34 @@ def generate_message_template(channel: dict, last_post: dict) -> str:
         "If you're open to it, I can share a quick sample edit tailored to your style."
         "\n\nCheers,\nYour Name"
     )
+
+def build_gmail_compose_link(to: str, subject: str, body: str) -> str:
+    """Create a Gmail compose URL with prefilled fields."""
+    try:
+        if not to:
+            return ''
+        import urllib.parse as _u
+        params = {
+            'view': 'cm',
+            'to': to,
+            'su': subject or '',
+            'body': body or ''
+        }
+        return f"https://mail.google.com/mail/?{_u.urlencode(params)}"
+    except Exception:
+        return ''
+
+def _pick_best_contact_link(links: list) -> str:
+    """Pick the most promising contact link from a list (prefer Discord/invite, then contact pages)."""
+    if not links:
+        return ''
+    # Prefer discord invites
+    for link in links:
+        l = (link or '').lower()
+        if 'discord.gg' in l or 'discord.com/invite' in l:
+            return link
+    # Else first link
+    return links[0]
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))

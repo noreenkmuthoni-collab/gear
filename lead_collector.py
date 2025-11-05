@@ -36,12 +36,17 @@ class LeadCollector:
         if emails:
             lead['email'] = emails[0]
         
-        # Try to get email from channel page
+        # Try to get email / contact links from channel page
         channel_url = channel_info.get('url', '')
         if channel_url:
-            page_emails = self._extract_emails_from_url(channel_url)
+            contact_data = self._extract_contacts_from_url(channel_url)
+            page_emails = contact_data.get('emails', [])
             if page_emails and not lead['email']:
                 lead['email'] = page_emails[0]
+            # Prefer discord/contact links if present
+            contact_links = contact_data.get('links', [])
+            if contact_links:
+                lead['contact_info']['links'] = contact_links
         
         # Try to extract email from About page
         if channel_info.get('platform') == 'youtube':
@@ -82,6 +87,36 @@ class LeadCollector:
             print(f"Error extracting emails from URL {url}: {e}")
         
         return emails
+
+    def _extract_contacts_from_url(self, url: str) -> Dict[str, List[str]]:
+        """Extract emails and likely contact links (discord/contact/business) from a webpage."""
+        emails: List[str] = []
+        links: List[str] = []
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                text = soup.get_text()
+                emails = self._extract_emails_from_text(text)
+                for a in soup.find_all('a'):
+                    href = (a.get('href') or '').strip()
+                    label = (a.get_text() or '').strip().lower()
+                    if not href:
+                        continue
+                    # Normalize
+                    href_lower = href.lower()
+                    candidates = [href_lower, label]
+                    # Heuristics: discord, contact, business, email
+                    if any(s in c for c in candidates for s in ['discord.gg', 'discord.com/invite']):
+                        links.append(href)
+                    elif any(s in c for c in candidates for s in ['contact', 'business', 'hire me', 'work with me', 'email']):
+                        links.append(href)
+        except Exception as e:
+            print(f"Error extracting contacts from URL {url}: {e}")
+        return {'emails': emails, 'links': list(dict.fromkeys(links))}
     
     def _get_youtube_about_email(self, channel_info: Dict) -> Optional[str]:
         """Get email from YouTube channel's About page"""
