@@ -43,11 +43,31 @@
         }
         
         .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
+            display: block;
+            margin-bottom: 20px;
         }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            background: #111;
+            border: 2px solid #C2185B;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: #C2185B;
+        }
+
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
         
         .card {
             background: #111;
@@ -263,76 +283,46 @@
         </div>
         
         <div class="main-content">
-            <div class="card">
-                <h2>🔍 Channel Collection</h2>
-                <form id="collectionForm">
-                    <div class="form-group">
-                        <label for="query">Search Query</label>
-                        <input type="text" id="query" name="query" placeholder="e.g., tech reviews, gaming, vlogs" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Platforms</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="platforms" value="youtube" checked> YouTube</label>
-                            <label><input type="checkbox" name="platforms" value="instagram" checked> Instagram</label>
-                            <label><input type="checkbox" name="platforms" value="tiktok" checked> TikTok</label>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn">Collect Channels</button>
-                </form>
-            </div>
-            
-            <div class="card">
-                <h2>📋 Bulk Channels</h2>
-                <form id="bulkForm">
-                    <div class="form-group">
-                        <label for="bulkInput">Paste channel names (one per line or comma-separated)</label>
-                        <textarea id="bulkInput" rows="6" placeholder="e.g. @mrbeast\nfilmriot\nsome_ig_user"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Platforms</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="platforms" value="youtube" checked> YouTube</label>
-                            <label><input type="checkbox" name="platforms" value="instagram" checked> Instagram</label>
-                            <label><input type="checkbox" name="platforms" value="tiktok" checked> TikTok</label>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn">Process Channels</button>
-                </form>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="bulk">Bulk Channels</button>
+                <button class="tab-btn" data-tab="leads">Leads Collected</button>
             </div>
 
-            <div class="card">
-                <h2>🚀 Full Automation</h2>
-                <form id="automationForm">
-                    <div class="form-group">
-                        <label for="autoQuery">Search Query</label>
-                        <input type="text" id="autoQuery" name="query" placeholder="e.g., tech reviews, gaming, vlogs" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Platforms</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="platforms" value="youtube" checked> YouTube</label>
-                            <label><input type="checkbox" name="platforms" value="instagram" checked> Instagram</label>
-                            <label><input type="checkbox" name="platforms" value="tiktok" checked> TikTok</label>
+            <div class="tab-pane active" id="tab-bulk">
+                <div class="card">
+                    <h2>📋 Bulk Channels</h2>
+                    <form id="bulkForm">
+                        <div class="form-group">
+                            <label for="bulkInput">Paste channel names (one per line or comma-separated)</label>
+                            <textarea id="bulkInput" rows="6" placeholder="e.g. @mrbeast\nfilmriot\nsome_ig_user"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Platforms</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="platforms" value="youtube" checked> YouTube</label>
+                                <label><input type="checkbox" name="platforms" value="instagram" checked> Instagram</label>
+                                <label><input type="checkbox" name="platforms" value="tiktok" checked> TikTok</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Process Channels</button>
+                    </form>
+                </div>
+                <div id="alertContainer"></div>
+                <div class="results" id="resultsSection" style="display: none;">
+                    <h2>📊 Results</h2>
+                    <div class="results-content" id="resultsContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Processing...</p>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn">Run Full Automation</button>
-                </form>
+                </div>
             </div>
-        </div>
-        
-        <div id="alertContainer"></div>
-        
-        <div class="results" id="resultsSection" style="display: none;">
-            <h2>📊 Results</h2>
-            <div class="results-content" id="resultsContent">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Processing...</p>
+
+            <div class="tab-pane" id="tab-leads">
+                <div class="card">
+                    <h2>🗂️ Leads Collected</h2>
+                    <div id="leadsTable"></div>
                 </div>
             </div>
         </div>
@@ -340,6 +330,19 @@
     
     <script>
         const API_BASE = '/api';
+        const leadsStore = [];
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                document.getElementById(`tab-${tab}`).classList.add('active');
+                if (tab === 'leads') renderLeads();
+            });
+        });
         
         function showAlert(message, type = 'success') {
             const container = document.getElementById('alertContainer');
@@ -408,83 +411,16 @@
             }
             
             if (data.leads) {
+                // Merge into leadsStore
+                data.leads.forEach(l => leadsStore.push({ ...l }));
                 html += '<h3 style="color: #E91E63; margin-top: 30px;">Leads</h3>';
-                data.leads.forEach(lead => {
-                    const contactLink = lead.contact_link ? `<a href="${lead.contact_link}" target="_blank">Contact</a>` : 'N/A';
-                    const msg = lead.message_template ? lead.message_template.replace(/\n/g, '<br>') : '';
-                    html += `
-                        <div class="lead-item">
-                            <h3>${lead.username || 'Unknown'}</h3>
-                            <p><strong>Email:</strong> ${lead.email || 'Not found'}</p>
-                            <p><strong>Platform:</strong> ${lead.platform || 'unknown'} | ${contactLink}</p>
-                            ${msg ? `<div style="margin-top:10px;"><strong>Template:</strong><div style="margin-top:6px; background:#0b0b0b; border:1px solid #333; padding:10px; border-radius:6px;">${msg}</div></div>` : ''}
-                        </div>
-                    `;
-                });
+                html += '<p>Saved to the Leads Collected tab.</p>';
             }
             
             resultsContent.innerHTML = html;
         }
         
-        document.getElementById('collectionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            showLoading();
-            
-            const formData = new FormData(e.target);
-            const query = formData.get('query');
-            const platforms = formData.getAll('platforms');
-            
-            try {
-                const response = await fetch(`${API_BASE}/collect-channels`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ query, platforms })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayResults(data);
-                    showAlert(`Successfully collected ${data.count} channels!`, 'success');
-                } else {
-                    showAlert(data.error || 'Error collecting channels', 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            }
-        });
-        
-        document.getElementById('automationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            showLoading();
-            
-            const formData = new FormData(e.target);
-            const query = formData.get('query');
-            const platforms = formData.getAll('platforms');
-            
-            try {
-                const response = await fetch(`${API_BASE}/full-automation`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ query, platforms })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayResults(data);
-                    showAlert(`Automation complete! Sent ${data.emails_sent} emails.`, 'success');
-                } else {
-                    showAlert(data.error || 'Error running automation', 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            }
-        });
+        // Bulk only
 
         document.getElementById('bulkForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -501,6 +437,8 @@
                 if (data.success) {
                     displayResults(data);
                     showAlert(`Processed ${data.count} entries`, 'success');
+                    // switch to leads tab automatically
+                    document.querySelector('.tab-btn[data-tab="leads"]').click();
                 } else {
                     showAlert(data.error || 'Error processing channels', 'error');
                 }
@@ -508,6 +446,52 @@
                 showAlert('Error: ' + err.message, 'error');
             }
         });
+
+        function renderLeads() {
+            const container = document.getElementById('leadsTable');
+            if (!leadsStore.length) {
+                container.innerHTML = '<p>No leads yet. Process channels first.</p>';
+                return;
+            }
+            let html = '<div class="results-content">';
+            html += '<div class="stat" style="margin-bottom:20px;"><div class="stat-value">' + leadsStore.length + '</div><div class="stat-label">Total Leads</div></div>';
+
+            // Table-like list
+            leadsStore.forEach((lead, idx) => {
+                const email = lead.email || '';
+                const platform = lead.platform || '';
+                const hasContact = !!lead.contact_link;
+                const contactDisplay = hasContact ? `<a href="${lead.contact_link}" target="_blank">Contact</a>` : '';
+                const manualId = `manualContact_${idx}`;
+                html += `
+                <div class="lead-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <div><strong>${lead.username || 'Unknown'}</strong> <span class="badge badge-info">${platform}</span></div>
+                        <div>
+                            <span><strong>Email:</strong> ${email || 'Not found'}</span>
+                            <span style="margin-left:15px;"><strong>Contact:</strong> ${contactDisplay || `<input id="${manualId}" placeholder="Paste contact URL or mailto:" style="background:#0b0b0b; color:#fff; border:1px solid #333; padding:6px 8px; border-radius:6px; width:260px;"> <button class="tab-btn" onclick="saveManualContact(${idx}, '${manualId}')">Save</button>`}</span>
+                        </div>
+                    </div>
+                    <details style="margin-top:10px;">
+                        <summary style="cursor:pointer;">Show details</summary>
+                        <div style="margin-top:10px;">
+                            ${lead.message_template ? `<div><strong>Template:</strong><div style="margin-top:6px; background:#0b0b0b; border:1px solid #333; padding:10px; border-radius:6px;">${lead.message_template.replace(/\n/g, '<br>')}</div></div>` : ''}
+                        </div>
+                    </details>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        window.saveManualContact = function(idx, inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const val = input.value.trim();
+            if (!val) return;
+            leadsStore[idx].contact_link = val;
+            renderLeads();
+        }
     </script>
 </body>
 </html>
